@@ -12,8 +12,9 @@ Fill in every section marked with >>> EDIT <<< before running.
 #   2. Send /newbot, follow prompts, copy the HTTP API token it gives you.
 #   3. Search for "@userinfobot", start a chat — it replies with your chat ID.
 # =============================================================================
-TELEGRAM_BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
-TELEGRAM_CHAT_ID = "PASTE_YOUR_CHAT_ID_HERE"
+import os
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
 # =============================================================================
