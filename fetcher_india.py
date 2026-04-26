@@ -1,12 +1,12 @@
 """
-fetcher_india.py — fetches NSE prices via nsepython (free, no auth).
+fetcher_india.py — fetches NSE prices via Yahoo Finance (yfinance).
 
-nsepython scrapes NSE's public endpoints. It can occasionally fail when NSE
-changes their website, so we wrap every call in try/except.
+NSE blocks data-center IPs (GitHub Actions, AWS, etc.), so we use Yahoo
+Finance instead — same library as the US fetcher. Indian NSE tickers on
+Yahoo just need a ".NS" suffix appended (e.g., "GOLDBEES" -> "GOLDBEES.NS").
 """
+import yfinance as yf
 import logging
-import time
-from nsepython import nse_eq
 
 log = logging.getLogger(__name__)
 
@@ -15,21 +15,23 @@ def fetch_india_prices(symbols: list[str]) -> dict:
     """
     Returns: { "GOLDBEES": {"current": 78.50, "prev_close": 78.10}, ... }
 
-    nse_eq() returns a dict with priceInfo.lastPrice and priceInfo.previousClose.
-    We sleep 1s between calls to avoid hammering NSE.
+    Note: Output keys are the original symbols WITHOUT ".NS" so the rest of
+    the script (signals, holdings dict) keeps working unchanged.
     """
     out = {}
     for sym in symbols:
+        yahoo_ticker = f"{sym}.NS"
         try:
-            data = nse_eq(sym)
-            price_info = data.get("priceInfo", {})
-            current = float(price_info.get("lastPrice", 0))
-            prev_close = float(price_info.get("previousClose", 0))
-            if current == 0 or prev_close == 0:
-                log.warning("Zero price returned for %s — skipping", sym)
+            t = yf.Ticker(yahoo_ticker)
+            hist = t.history(period="5d")
+            if hist.empty or len(hist) < 2:
+                log.warning("Not enough data for %s (%s)", sym, yahoo_ticker)
                 continue
+            current = float(hist["Close"].iloc[-1])
+            prev_close = float(hist["Close"].iloc[-2])
             out[sym] = {"current": current, "prev_close": prev_close}
-            time.sleep(1)  # polite delay
+            log.info("Fetched %s: current=%.2f prev=%.2f",
+                     sym, current, prev_close)
         except Exception as e:
-            log.warning("Failed to fetch %s from NSE: %s", sym, e)
+            log.warning("Failed to fetch %s (%s): %s", sym, yahoo_ticker, e)
     return out

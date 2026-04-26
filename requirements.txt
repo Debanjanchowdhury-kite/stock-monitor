@@ -1,3 +1,2 @@
 yfinance>=0.2.40
-nsepython>=2.93
 requests>=2.31
