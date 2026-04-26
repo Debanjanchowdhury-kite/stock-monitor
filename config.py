@@ -31,7 +31,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 ALERT_MODE = "FROM_PEAK"    # tracks rolling peak in price_state.json
 
 DROP_THRESHOLD_PCT = 20.0   # buy alert trigger (20% off observed peak)
-PROFIT_THRESHOLD_PCT = 30.0 # sell alert trigger
+PROFIT_THRESHOLD_PCT = 20.0 # sell alert trigger
 
 
 # =============================================================================
